@@ -4,6 +4,7 @@ import numpy as np
 def stumpClassify(dataMatrix, dimen, threshVal, threshIneq):
     '''
     Classify the data points based on comparing the threthold
+	用训练好的决策树桩来进行分类
     
     Inputs:
         dataMatrix: the input data
@@ -24,6 +25,7 @@ def stumpClassify(dataMatrix, dimen, threshVal, threshIneq):
 def buildStump(dataArr, classLabels, D):
     '''
     Find the best decision stump for dataset by trying all inputs for stumpClassify()
+	一次分裂，训练决策树桩
     
     Inputs:
         dataArr: the data array
@@ -38,19 +40,19 @@ def buildStump(dataArr, classLabels, D):
     labelMat = np.mat(classLabels).T
     m, n = np.shape(dataMatrix)
     numSteps = 10.0
-    bestStump = {}
+    bestStump = {} # 存储最佳决策树的信息（哪个特征，分裂点如何，大/小于）
     bestClasEst = np.mat(np.zeros((m, 1)))
     minError = float('inf')
     for i in range(n):
         rangeMin = dataMatrix[:,i].min()
         rangeMax = dataMatrix[:,i].max()
-        stepSize = (rangeMax - rangeMin) / numSteps
+        stepSize = (rangeMax - rangeMin) / numSteps # 将[rangeMin, rangeMax]分成numSteps份，搜索分裂点
         for j in range(-1, int(numSteps) + 1):
-            for inequal in ['lt', 'gt']:
-                threshVal = (rangeMin + float(j) * stepSize)
-                predictedVals = stumpClassify(dataMatrix, i, threshVal, inequal)
+            for inequal in ['lt', 'gt']: # 对于每一个分裂点，有两种选择，正负分类可互相交换
+                threshVal = (rangeMin + float(j) * stepSize) # 分裂点
+                predictedVals = stumpClassify(dataMatrix, i, threshVal, inequal) # 当前分裂点的决策树预测结果
                 errArr = np.mat(np.ones((m, 1)))
-                errArr[predictedVals == labelMat] = 0
+                errArr[predictedVals == labelMat] = 0 # 分类正确的样本对错误率无贡献
                 weightedError = D.T * errArr # 加权计算错误率
                 
                 if weightedError < minError:

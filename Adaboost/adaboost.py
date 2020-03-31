@@ -48,31 +48,31 @@ def adaBoostTrainDS(dataArr, classLabels, numIt = 40):
     '''
     weakClassArr = []
     m = np.shape(dataArr)[0]
-    D = np.mat(np.ones((m, 1)) / m)
+    D = np.mat(np.ones((m, 1)) / m) # 样本权重，均匀
     aggClassEst = np.mat(np.zeros((m, 1)))
     for i in range(numIt):
-        bestStump, error, classEst = buildStump(dataArr, classLabels, D)
+        bestStump, error, classEst = buildStump(dataArr, classLabels, D) # 树桩信息，最小错误率，预测结果
         #print('D:',D.T)
-        alpha = float(0.5 * np.log((1.0 - error) / max(error, 1e-16)))
+        alpha = float(0.5 * np.log((1.0 - error) / max(error, 1e-16))) # 当前分类器权重，由错误率计算得出
         bestStump['alpha'] = alpha
-        weakClassArr.append(bestStump)
+        weakClassArr.append(bestStump) # 将当前决策树桩记录下来
         #print('classEst:', classEst.T)
-        expon = np.multiply(-1 * alpha * np.mat(classLabels).T, classEst)
-        D = np.multiply(D, np.exp(expon))
-        D = D / D.sum()
-        aggClassEst += alpha * classEst
+        expon = np.multiply(-1 * alpha * np.mat(classLabels).T, classEst) # 每个预测结果与真实标签逐元素相乘
+        D = np.multiply(D, np.exp(expon)) # 通过上一棵树的结果计算下一轮每一个样本的权重
+        D = D / D.sum() # 样本权重归一化
+        aggClassEst += alpha * classEst # 将预测结果加权到总结果（可理解为模型的相加）
         #print('aggClassEst:', aggClassEst.T)
-        aggErrors = np.multiply(np.sign(aggClassEst) != np.mat(classLabels).T, np.ones((m, 1)))
-        errorRate = aggErrors.sum() / m
+        aggErrors = np.multiply(np.sign(aggClassEst) != np.mat(classLabels).T, np.ones((m, 1))) # 总模型每个样本预测正确与否
+        errorRate = aggErrors.sum() / m # 总模型错误率
         print('total error:', errorRate, '\n')
         if errorRate == 0.0:
             break
-    return weakClassArr
+    return weakClassArr # 返回一个所有树桩的列表
         
 
 def adaClassify(datToClass, classifierArr):
     '''
-    classify data with our classifiers
+    classify data with our trained classifiers
     '''
     dataMatrix = np.mat(datToClass)
     m = np.shape(dataMatrix)[0]
